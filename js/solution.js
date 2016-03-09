@@ -98,6 +98,9 @@
 
         /* делает шаг назад */
         function stepBack() {
+            if (currentPath.length == 0) { // всё обошли и пришли в исходную точку
+                throw ({message: 'Выход не найден.'});
+            }
             var prevStepRecord = currentPath.pop(); //получаем запись о предыдущем шаге и извлекаем её из текущего пути
             var backDirection =                                     //получаем направление обратное направлению предыдущего шага
                 (prevStepRecord.direction == DIRECTION.bottom && DIRECTION.top) + 
@@ -111,7 +114,9 @@
             };
             pathLog.push(logRecord); //сохраняем запись о перемещении в лог
             currentPosition = getNewPosition(backDirection); // получаем новую позицию игрока
-            prevStepDirection = currentPath[currentPath.length - 1].direction; // сохраняем направление шага предествующего данной позиции, т.е. шага который в первый раз привел игрока в текущую точку.
+            if (currentPath[currentPath.length - 1]) {
+                prevStepDirection = currentPath[currentPath.length - 1].direction; // сохраняем направление шага предествующего данной позиции, т.е. шага который в первый раз привел игрока в текущую точку.
+            }
         }
 
         /* определяет направление следующего шага */
