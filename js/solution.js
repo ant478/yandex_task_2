@@ -93,6 +93,7 @@
             pathLog.push(logRecord); // сохраняем запись о перемещении в лог перемещений и в текущий путь
             currentPath.push(logRecord);
             currentPosition = getNewPosition(direction); // получаем новую позицию игрока
+            prevStepDirection = direction;  // сохраняем направление шага
         }
 
         /* делает шаг назад */
@@ -110,34 +111,36 @@
             };
             pathLog.push(logRecord); //сохраняем запись о перемещении в лог
             currentPosition = getNewPosition(backDirection); // получаем новую позицию игрока
+            prevStepDirection = currentPath[currentPath.length - 1].direction; // сохраняем направление шага предествующего данной позиции, т.е. шага который в первый раз привел игрока в текущую точку.
         }
 
         /* определяет направление следующего шага */
         function getNextStepDirection() {
-            if (canMove(prevStepDirection)) { //проверяем возможность движения по старому направлению
+            var canMoveBottom = canMove(DIRECTION.bottom);
+            var canMoveRight = canMove(DIRECTION.right);
+            var canMoveTop = canMove(DIRECTION.top);
+            var canMoveLeft = canMove(DIRECTION.left);
+            if (canMoveBottom + canMoveRight + canMoveTop + canMoveLeft > 1) { // сохраняем последнюю точку в которой был выбор
+                prevChoisePoint = currentPosition;
+            }
+            var canMovePrevDirection =                            // определяем можно ли двигаться в прежнем направлении
+                (prevStepDirection == DIRECTION.bottom && canMoveBottom) + 
+                (prevStepDirection == DIRECTION.top && canMoveTop) + 
+                (prevStepDirection == DIRECTION.left && canMoveLeft) + 
+                (prevStepDirection == DIRECTION.right && canMoveRight);
+            if (canMovePrevDirection) { //проверяем возможность движения по старому направлению
                 return prevStepDirection;
-            } else if (canMove(DIRECTION.bottom)) { //проверяем возможность движения вниз
+            } else if (canMoveBottom) { //проверяем возможность движения вниз
                 return DIRECTION.bottom;
-            } else if (canMove(DIRECTION.right)) { //проверяем возможность движения вправо
+            } else if (canMoveRight) { //проверяем возможность движения вправо
                 return DIRECTION.right;
-            } else if (canMove(DIRECTION.top)) { //проверяем возможность движения вверх
+            } else if (canMoveTop) { //проверяем возможность движения вверх
                 return DIRECTION.top;
-            } else if (canMove(DIRECTION.left)) { //проверяем возможность движения влево
+            } else if (canMoveLeft) { //проверяем возможность движения влево
                 return DIRECTION.left;
             } else {                              //зашли в тупик - делаем шаг назад
                 return DIRECTION.back;
             }
-        }
-
-
-        /* возвращает true если есть более одного варианта след шага */
-        function hasChoise() {
-            var possibleDirectionsCount = 
-                canMove(DIRECTION.bottom) +
-                canMove(DIRECTION.right) +
-                canMove(DIRECTION.top) +
-                canMove(DIRECTION.left);
-            return possibleDirectionsCount > 1;
         }
 
         /* условие выхода из лабиринта, возвращает true если выход найден */
@@ -149,9 +152,6 @@
             currentPosition = {x: x, y: y};
             prevStepDirection = DIRECTION.bottom;
             while (!foundExit()) { //цикл завершается если выход найден или через исключение
-                if (hasChoise()) {
-                    prevChoisePoint = currentPosition; // сохраняем последнюю точку в которой был выбор
-                }
                 var direction = getNextStepDirection(); // получаем направление след шага
                 if (direction == DIRECTION.back) {
                     stepBack(); // шаг назад
