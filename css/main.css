@@ -23,6 +23,17 @@ body {
     margin-right: 1px;
     margin-bottom: 1px;
     border: 1px solid #eee;
+    position: relative;
+}
+
+.maze__cell:before {
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    font-size: 10px;
+    line-height: 10px;
+    text-align: center;
 }
 
 .maze__cell_wall {
@@ -31,6 +42,50 @@ body {
 
 .maze__cell_path {
     background-color: #fad946;
+}
+
+.maze__cell_path_result.top:before {
+    display: block;
+    content: "\2191";
+}
+
+.maze__cell_path_result.bottom:before {
+    display: block;
+    content: "\2193";
+}
+
+.maze__cell_path_result.left:before {
+    display: block;
+    content: "\2190";
+}
+
+.maze__cell_path_result.right:before {
+    display: block;
+    content: "\2192";
+}
+
+.maze__cell_current:not(.maze__cell_finish):before {
+    content: "\263B";
+    display: block;
+}
+
+.maze__cell_path_result {
+    background-color: #FFA345;
+}
+
+.maze__cell_start {
+    background-color: blue;
+}
+
+.maze__cell_start:before {
+    content: "\2605" !important;
+    display: block;
+    color: #fff;
+}
+
+.maze__cell_finish:before {
+    content: "\26F3";
+    display: block;
 }
 
 .maze__cell_current {
