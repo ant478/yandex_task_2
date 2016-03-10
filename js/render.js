@@ -3,6 +3,7 @@
     var WALL = root.maze.WALL;
     var PATH = root.maze.PATH;
     var CURRENT = root.maze.CURRENT;
+    var DIRECTION = root.maze.DIRECTION;
 
     /**
      * Создает HTML элемент заданного типа с заданным CSS классом
@@ -11,9 +12,12 @@
      * @param {string} className CSS класс
      * @returns {HTMLElement} HTML элемент
      */
-    function element(type, className) {
+    function element(type, className, id) { // добавил возможность указания id создаваемого элемента
         var elem = document.createElement(type);
         elem.className = className;
+        if (id) {
+            elem.id = id; 
+        }        
         return elem;
     }
 
@@ -70,7 +74,7 @@
                 }
 
                 rowElem.appendChild(
-                    element('div', 'maze__cell' + (type ? ' maze__cell_' + type : ''))
+                    element('div', 'maze__cell' + (type ? ' maze__cell_' + type : ''), 'x' + x + 'y' + y) // добавил id к каждой ячейке
                 );
             }
 
@@ -80,5 +84,86 @@
         return containerElem;
     }
 
+    function renderPathBySteps (maze, path, pathLog, interval) {
+        var renderedCount = 0; //колличество отрисованных шагов
+        var currentPosition = {}; // текущая позиция
+        var currentCell = null; // текущая ячейка
+
+        function hasClass(el, className) { // 3 функции для работы с классами позаимствовал, дабы не изобретать велосипед.
+          if (el.classList)
+            return el.classList.contains(className)
+          else
+            return !!el.className.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
+        }
+
+        function addClass(el, className) {
+          if (el.classList)
+            el.classList.add(className)
+          else if (!hasClass(el, className)) el.className += " " + className
+        }
+
+        function removeClass(el, className) {
+          if (el.classList)
+            el.classList.remove(className)
+          else if (hasClass(el, className)) {
+            var reg = new RegExp('(\\s|^)' + className + '(\\s|$)')
+            el.className=el.className.replace(reg, ' ')
+          }
+        }
+
+        function renderResultPath() { // устанавливаем элементам результирующего соответствующий класс
+            for (var i = 0; i <= path.length - 1; i++) {
+                addClass(maze.querySelector('#x' + path[i][0] + 'y' + path[i][1]), "maze__cell_path_result");
+            }
+        }
+
+        function addDirectionClass(element, direction) { // получаем направление шага в виде строки
+            switch (pathLog[renderedCount].direction) {
+                case DIRECTION.bottom:
+                    addClass(element, "bottom");
+                    removeClass(element, "top");
+                    break;
+                case DIRECTION.top: 
+                    addClass(element, "top");
+                    removeClass(element, "bottom");
+                    break;
+                case DIRECTION.left: 
+                    addClass(element, "left");
+                    removeClass(element, "right");
+                    break;
+                case DIRECTION.right: 
+                    addClass(element, "right");
+                    removeClass(element, "left");
+                    break;
+                default:
+                    addClass(element, "none");
+            }
+
+        }
+
+        function renderNextStep() { // добавляет или удаляет к ячейкам классы 'maze__cell_current', 'maze__cell_pathLog', 'bottom' 'top' 'left' 'right'.
+            removeClass(currentCell, "maze__cell_current");
+            currentPosition = {x: pathLog[renderedCount].x, y: pathLog[renderedCount].y}; //получаем текущую позицию игрока
+            currentCell = maze.querySelector('#x' + currentPosition.x + 'y' + currentPosition.y); //получаем текущую ячейку лабиринта
+            addDirectionClass(currentCell, pathLog[renderedCount].direction); // добавляем класс направления для последующего отображения стрелки
+            addClass(currentCell, "maze__cell_current"); // устанавливаем классы обозначающие текущую позицию и элемент пути
+            addClass(currentCell, "maze__cell_path");
+            renderedCount++;
+            if (renderedCount > pathLog.length - 1) { // отменяем интервал когда отрисованы все шаги
+                addClass(currentCell, "maze__cell_finish"); //устанавливаем класс обозначающий выход из лабиринта
+                clearInterval(interval);
+                renderResultPath();                
+            }
+        }
+
+        currentPosition = {x: pathLog[0].x, y: pathLog[0].y}; //получаем текущую позицию игрока
+        currentCell = maze.querySelector('#x' + currentPosition.x + 'y' + currentPosition.y);  //получаем текущую ячейку лабиринта
+        addClass(currentCell, "maze__cell_current");  // устанавливаем классы обозначающие текущую позиция, элемент пути и начало движения
+        addClass(currentCell, "maze__cell_path");
+        addClass(currentCell, "maze__cell_start");
+        var interval = setInterval(renderNextStep, interval); // последовательно рисуем все шаги через промежуток времени interval
+    }
+
+    root.maze.renderPathBySteps = renderPathBySteps;
     root.maze.render = render;
 })(this);

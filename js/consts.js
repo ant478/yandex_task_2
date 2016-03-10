@@ -5,6 +5,14 @@
     maze.WALL = -1;
     maze.PATH = -2;
     maze.CURRENT = -3;
+    /* направления шага */
+    maze.DIRECTION = {
+        back: -1,
+        top: 0,
+        right: 1,
+        bottom: 2,
+        left: 3
+    }
 
     maze.MAZE_21 = [
         [-1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],

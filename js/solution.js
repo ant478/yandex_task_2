@@ -3,7 +3,7 @@
     var WALL = root.maze.WALL;
     var PATH = root.maze.PATH;
     var CURRENT = root.maze.CURRENT;
-
+    var DIRECTION = root.maze.DIRECTION; /* направления шага */
 
     /**
      * Функция находит путь к выходу и возвращает найденный маршрут
@@ -13,16 +13,7 @@
      * @param {number} y координата точки старта по оси Y
      * @returns {[number, number][]} маршрут к выходу представленный списоком пар координат
      */
-    function solution(maze, x, y) {
-        /* направления шага */
-        var DIRECTION = {
-            back: -1,
-            top: 0,
-            right: 1,
-            bottom: 2,
-            left: 3
-        }
-
+    function solution(maze, x, y, log) {
         /* полный лог передвижений игрока  */
         var pathLog = [];
 
@@ -38,13 +29,10 @@
         /* направление последнего шага игрока */
         var prevStepDirection = 0;
 
-        /* возвразает путь в формате {[number. number][]} */
         function makePath() {
-            var result = [];
-            for (var i = 0; i <= currentPath.length - 1; i++) {
-                result.push([currentPath[i].x, currentPath[i].y]);
-            }
-            return result;
+            return currentPath.map(function(pathRecord){
+                return [pathRecord.x, pathRecord.y];
+            });
         }
 
         /* возвращает true если точка с координатами x, y за краем лабиринта */
@@ -71,7 +59,7 @@
         /* получает координаты точки после шага в направлении direction от текущей */
         function getNewPosition(direction) {
             var newPosition = {
-                x: currentPosition.x + (direction == DIRECTION.right) - (direction == DIRECTION.left),
+                x: currentPosition.x + (direction == DIRECTION.right) - (direction == DIRECTION.left), // Number(true) -> 1; Number(false) -> 0;
                 y: currentPosition.y + (direction == DIRECTION.bottom) - (direction == DIRECTION.top)
             }
             return newPosition;
@@ -103,7 +91,7 @@
             }
             var prevStepRecord = currentPath.pop(); //получаем запись о предыдущем шаге и извлекаем её из текущего пути
             var backDirection =                                     //получаем направление обратное направлению предыдущего шага
-                (prevStepRecord.direction == DIRECTION.bottom && DIRECTION.top) + 
+                (prevStepRecord.direction == DIRECTION.bottom && DIRECTION.top) + //false && x -> false; true && x -> x; Number(false) -> 0;
                 (prevStepRecord.direction == DIRECTION.top && DIRECTION.bottom) + 
                 (prevStepRecord.direction == DIRECTION.left && DIRECTION.right) + 
                 (prevStepRecord.direction == DIRECTION.right && DIRECTION.left);
@@ -125,11 +113,11 @@
             var canMoveRight = canMove(DIRECTION.right);
             var canMoveTop = canMove(DIRECTION.top);
             var canMoveLeft = canMove(DIRECTION.left);
-            if (canMoveBottom + canMoveRight + canMoveTop + canMoveLeft > 1) { // сохраняем последнюю точку в которой был выбор
-                prevChoisePoint = currentPosition;
+            if (canMoveBottom + canMoveRight + canMoveTop + canMoveLeft > 1) { // Number(true) -> 1; Number(false) -> 0;
+                prevChoisePoint = currentPosition;  // сохраняем последнюю точку в которой был выбор
             }
             var canMovePrevDirection =                            // определяем можно ли двигаться в прежнем направлении
-                (prevStepDirection == DIRECTION.bottom && canMoveBottom) + 
+                (prevStepDirection == DIRECTION.bottom && canMoveBottom) + //false && x -> false; true && x -> x; Number(false) -> 0;
                 (prevStepDirection == DIRECTION.top && canMoveTop) + 
                 (prevStepDirection == DIRECTION.left && canMoveLeft) + 
                 (prevStepDirection == DIRECTION.right && canMoveRight);
@@ -143,7 +131,7 @@
                 return DIRECTION.top;
             } else if (canMoveLeft) { //проверяем возможность движения влево
                 return DIRECTION.left;
-            } else {                              //зашли в тупик - делаем шаг назад
+            } else {                  //зашли в тупик - делаем шаг назад
                 return DIRECTION.back;
             }
         }
@@ -155,6 +143,12 @@
 
         try {
             currentPosition = {x: x, y: y};
+            if (isEdge(currentPosition)) {
+                throw ({message: "Некорректные параметры: стартовая точка за краем лабиринта."});
+            }
+            if (isWall(currentPosition)) {
+                throw ({message: "Некорректные параметры: стартовая точка находится на стене."});
+            }
             prevStepDirection = DIRECTION.bottom;
             while (!foundExit()) { //цикл завершается если выход найден или через исключение
                 var direction = getNextStepDirection(); // получаем направление след шага
@@ -164,16 +158,20 @@
                     makeStep(direction); // шаг в направлении direction
                 }
             }
-            currentPath.push({
+            var logRecord = { // ещё один шаг к выходу
                 x: currentPosition.x,
                 y: currentPosition.y,
-                direction: DIRECTION.back
-            });
+                direction: prevStepDirection
+            }
+            currentPath.push(logRecord);
+            pathLog.push(logRecord);
+            log.pathLog = pathLog;
             return makePath();
         } catch (e) {
             console.log(e);
             alert(e.message);
-            return [];
+            log.pathLog = pathLog;
+            return makePath();
         }
     }
 
