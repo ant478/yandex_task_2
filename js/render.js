@@ -111,9 +111,15 @@
           }
         }
 
-        function renderResultPath() { // устанавливаем элементам результирующего соответствующий класс
+        function renderResultPath() { // устанавливаем элементам результирующего пути соответствующий класс
+            var element;
             for (var i = 0; i <= path.length - 1; i++) {
-                addClass(maze.querySelector('#x' + path[i][0] + 'y' + path[i][1]), "maze__cell_path_result");
+                element = maze.querySelector('#x' + path[i][0] + 'y' + path[i][1]);
+                if (element) {
+                    addClass(element, "maze__cell_path_result");
+                } else {
+                    console.log("Cell (" + path[i][0] + "," + path[i][1] + ")" + "is missing.");
+                }                
             }
         }
 
@@ -138,29 +144,37 @@
                 default:
                     addClass(element, "none");
             }
-
         }
 
         function renderNextStep() { // добавляет или удаляет к ячейкам классы 'maze__cell_current', 'maze__cell_pathLog', 'bottom' 'top' 'left' 'right'.
             removeClass(currentCell, "maze__cell_current");
             currentPosition = {x: pathLog[renderedCount].x, y: pathLog[renderedCount].y}; //получаем текущую позицию игрока
             currentCell = maze.querySelector('#x' + currentPosition.x + 'y' + currentPosition.y); //получаем текущую ячейку лабиринта
-            addDirectionClass(currentCell, pathLog[renderedCount].direction); // добавляем класс направления для последующего отображения стрелки
-            addClass(currentCell, "maze__cell_current"); // устанавливаем классы обозначающие текущую позицию и элемент пути
-            addClass(currentCell, "maze__cell_path");
+            if (currentCell) {
+                addDirectionClass(currentCell, pathLog[renderedCount].direction); // добавляем класс направления для последующего отображения стрелки
+                addClass(currentCell, "maze__cell_current"); // устанавливаем классы обозначающие текущую позицию и элемент пути
+                addClass(currentCell, "maze__cell_path");
+            } else {
+                console.log("Cell (" + currentPosition.x + "," + currentPosition.y + ")" + "is missing.");
+            }
             renderedCount++;
             if (renderedCount > pathLog.length - 1) { // отменяем интервал когда отрисованы все шаги
-                addClass(currentCell, "maze__cell_finish"); //устанавливаем класс обозначающий выход из лабиринта
+                if (currentCell)
+                    addClass(currentCell, "maze__cell_finish"); //устанавливаем класс обозначающий выход из лабиринта
                 clearInterval(interval);
-                renderResultPath();                
+                renderResultPath();
             }
         }
 
         currentPosition = {x: pathLog[0].x, y: pathLog[0].y}; //получаем текущую позицию игрока
         currentCell = maze.querySelector('#x' + currentPosition.x + 'y' + currentPosition.y);  //получаем текущую ячейку лабиринта
-        addClass(currentCell, "maze__cell_current");  // устанавливаем классы обозначающие текущую позиция, элемент пути и начало движения
-        addClass(currentCell, "maze__cell_path");
-        addClass(currentCell, "maze__cell_start");
+        if (currentCell) {
+            addClass(currentCell, "maze__cell_current");  // устанавливаем классы обозначающие текущую позиция, элемент пути и начало движения
+            addClass(currentCell, "maze__cell_path");
+            addClass(currentCell, "maze__cell_start");
+        } else {
+            console.log("Cell (" + currentPosition.x + "," + currentPosition.y + ")" + "is missing.");
+        }
         var interval = setInterval(renderNextStep, interval); // последовательно рисуем все шаги через промежуток времени interval
     }
 

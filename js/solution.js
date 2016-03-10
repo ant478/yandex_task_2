@@ -158,7 +158,7 @@
                     makeStep(direction); // шаг в направлении direction
                 }
             }
-            var logRecord = { // ещё один шаг к выходу
+            var logRecord = { // добавляем текущее положение к логу
                 x: currentPosition.x,
                 y: currentPosition.y,
                 direction: prevStepDirection
