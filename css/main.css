@@ -24,6 +24,10 @@ body {
     margin-bottom: 1px;
     border: 1px solid #eee;
     position: relative;
+    -webkit-transition: background-color 0.1s;
+    -moz-transition: background-color 0.1s;
+    -o-transition: background-color 0.1s;
+    transition: background-color 0.1s;
 }
 
 .maze__cell:before {
