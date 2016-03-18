@@ -183,10 +183,11 @@
                 console.log("Cell (" + currentPosition.x + "," + currentPosition.y + ")" + "is missing.");
             }
             renderedCount++;
-            if (renderedCount > pathLog.length - 1) { // отменяем интервал когда отрисованы все шаги
+            if (renderedCount <= pathLog.length - 1) {
+              setTimeout(renderNextStep, interval);
+            } else {
                 if (currentCell)
                     addClass(currentCell, "maze__cell_finish"); //устанавливаем класс обозначающий выход из лабиринта
-                clearInterval(interval);
                 renderResultPath(); // рисуем результирующий путь
             }
         }
@@ -200,7 +201,7 @@
         } else {
             console.log("Cell (" + currentPosition.x + "," + currentPosition.y + ")" + "is missing.");
         }
-        var interval = setInterval(renderNextStep, interval); // последовательно рисуем все шаги через промежуток времени interval
+        renderNextStep(); // начинаем отрисовку шагов
     }
 
     root.maze.renderPathBySteps = renderPathBySteps;

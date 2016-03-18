@@ -20,8 +20,8 @@
      *   действие осмотреться() {
      *       если (выход_найден) {
      *           выйти_из_лабиринта();
-     *       } иначе если (можно_двигаться_в_прежнем направлении) { // под "можно" подразумевается что на соседней 
-     *           сделать шаг в прежнем направлении();               // клетке не стена и игрок там ещё не был
+     *       } иначе если (можно_двигаться_в_прежнем направлении) {
+     *           сделать шаг в прежнем направлении();
      *           осмотреться();
      *       } иначе если (можно_двигаться_вправо) {
      *           сделать_шаг_вправо();
@@ -36,11 +36,12 @@
      *           сделать_шаг_вверх();
      *           осмотреться();
      *       } иначе если (не_в_исходной_точке){
-     *           вернуться_вернуться_к_предыдущей_развилке();
+     *           сделать_шаг_назад();
      *       } иначе {
      *           остаться_в_лабиринте навсегда();
      *       }
      *   }
+     *   // под "можно" подразумевается что на соседней клетке не стена и игрок там ещё не был
      *  Таким образом, по аналогии с алгоритмом заливки, игрок, передвигающийся по такому алгоритму, найдет выход, если он есть.
      *  если же выхода из лабиринта нет - игрок обойдет все возможное места и вернется в исходную точку. (В примерах из файла 
      *  const.js работа алгоритма лучше всего видна на картах с большим количеством развилок) В моей реализации, вместо рекурсии
@@ -56,10 +57,9 @@
      * @returns {[number, number][]} маршрут к выходу представленный списоком пар координат
      */
     function solution(maze, x, y, log) {
-        var pathLog = []; //полный лог передвижений игрока, {x: number, y: number, direction: number}[]
-        var currentPath = []; //текущий пройденный путь с учетом движения назад, {x: number, y: number, direction: number}[]
+        var pathLog = []; // полный лог передвижений игрока, {x: number, y: number, direction: number}[]
+        var currentPath = []; // текущий пройденный путь с учетом движения назад, {x: number, y: number, direction: number}[]
         var currentPosition = {}; // текущие координаты игрока, {x: number, y: number}
-        var prevChoisePoint = {}; // координаты последней пройденной точки на которой было более одного варианта направления следующего шага (развилки), {x: number, y: number}
         var prevStepDirection = 0; // направление последнего шага игрока, number
 
         // возвращает результирующий путь в формате [number, number][]
@@ -147,9 +147,6 @@
             var canMoveRight = canMove(DIRECTION.right);
             var canMoveTop = canMove(DIRECTION.top);
             var canMoveLeft = canMove(DIRECTION.left);
-            if (canMoveBottom + canMoveRight + canMoveTop + canMoveLeft > 1) { // Number(true) -> 1; Number(false) -> 0;
-                prevChoisePoint = currentPosition;  // сохраняем последнюю точку в которой был выбор
-            }
             var canMovePrevDirection =                            // определяем можно ли двигаться в прежнем направлении
                 (prevStepDirection == DIRECTION.bottom && canMoveBottom) + //false && x -> false; true && x -> x; Number(false) -> 0;
                 (prevStepDirection == DIRECTION.top && canMoveTop) + 
@@ -177,21 +174,25 @@
 
         try {
             currentPosition = {x: x, y: y}; // ставим игрока в точку x, y
+
             if (isEdge(currentPosition)) {  // проверяем на некорректные параметы
                 throw ({message: "Некорректные параметры: стартовая точка за краем лабиринта."});
             }
             if (isWall(currentPosition)) {
                 throw ({message: "Некорректные параметры: стартовая точка находится на стене."});
             }
-            prevStepDirection = DIRECTION.bottom; // инициальзируем направление последнего шага.
+
+            prevStepDirection = DIRECTION.bottom; // инициализируем направление последнего шага.
+
             while (!foundExit()) { //цикл завершается если выход найден или через исключение
-                var direction = getNextStepDirection(); // получаем направление след шага
-                if (direction == DIRECTION.back) {
-                    stepBack(); // шаг назад
-                } else {
+                var direction = getNextStepDirection(); // получаем направление следующего шага
+                if (direction != DIRECTION.back) {                    
                     makeStep(direction); // шаг в направлении direction
+                } else {
+                    stepBack(); // шаг назад
                 }
             }
+
             var logRecord = { // добавляем последние координаты игрока в лог и в итоговый путь.
                 x: currentPosition.x,
                 y: currentPosition.y,
@@ -199,6 +200,7 @@
             }
             currentPath.push(logRecord);
             pathLog.push(logRecord);
+
             log.pathLog = pathLog; // возвращаем лог передвижений и результирующий путь
             return makePath();
         } catch (e) {
