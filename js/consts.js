@@ -5,7 +5,7 @@
     maze.WALL = -1;
     maze.PATH = -2;
     maze.CURRENT = -3;
-    /* направления шага */
+    /* направления шага игрока */
     maze.DIRECTION = {
         back: -1,
         top: 0,
